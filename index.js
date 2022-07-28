@@ -14,72 +14,96 @@ async function interceptRequestsForPage(page) {
 
   await client.send('Network.enable');
 
-  await client.send('Network.setRequestInterception', { 
+  await client.send('Network.setRequestInterception', {
     patterns: scriptUrlPatterns.map(pattern => ({
       urlPattern: pattern, resourceType: 'Ping', interceptionStage: 'HeadersReceived'
     }))
   });
- client.on('Network.requestIntercepted', async ({ interceptionId, request, responseHeaders, resourceType,status }) => {
-    if(request.url=='https://analytics.tiktok.com/api/v2/pixel'){
-        let temp= await JSON.parse(request.postData).event
-        let temp1= await JSON.parse(request.postData).properties
-        console.log(temp)
-        console.log(temp1)
-       /*  console.log(`Intercepted ${request.url} {interception id: ${interceptionId}}{payload:${request.postData}}`); */
+  client.on('Network.requestIntercepted', async ({ interceptionId, request, responseHeaders, resourceType, status }) => {
+    if (request.url == 'https://analytics.tiktok.com/api/v2/pixel') {
+      let temp = await JSON.parse(request.postData).event
+      let temp1 = await JSON.parse(request.postData).properties
+      console.log(temp)
+      function objetoVazio(obj) {
+        for (var prop in obj) {
+          if (obj.hasOwnProperty(prop)) return true;
+        }
+        return false;
+      }
+      let erros = {}
+      let typeCurrency = ['AED', 'ARS', 'AUD', 'BDT', 'BHD', 'BIF', 'BOB', 'BRL', 'CAD', 'CHF', 'CLP', 'CNY', 'COP', 'CRC', 'CZK', 'DKK', 'DZD', 'EGP', 'EUR', 'GBP', 'GTQ', 'HKD', 'HNL', 'HUF', 'IDR', 'ILS', 'INR', 'ISK', 'JPY', 'KES', 'KHR', 'KRW', 'KWD', 'KZT', 'MAD', 'MOP', 'MXN', 'MYR', 'NGN', 'NIO', 'NOK', 'NZD', 'OMR', 'PEN', 'PHP', 'PKR', 'PLN', 'PYG', 'QAR', 'RON', 'RUB', 'SAR', 'SEK', 'SGD', 'THB', 'TRY', 'TWD', 'UAH', 'USD', 'VES', 'VND', 'ZAR']
+      let regras = {
+        content_id() {
+          if (temp1.hasOwnProperty('content_id') === false) {
+            erros.content_id = 'Não possui content_id';
+          }
+        },
+        value() {
+          if (temp1.hasOwnProperty('value') === false) {
+            if (temp1.hasOwnProperty('currency') === true) {
+              erros.value = 'Possui currency e não possui value';
+            }
+          }
+          if (temp1.hasOwnProperty('value') === true && typeof temp1.value !== 'number') {
+            erros.value = 'não é do tipo number';
+          }
+
+        },
+        currency() {
+          if (temp1.hasOwnProperty('currency') === false) {
+
+            if (temp1.hasOwnProperty('value') === true) {
+              erros.currency = 'possui value e não possui currency';
+            }
+          }
+          let selectCurrency = temp1.currency.toUpperCase();
+          let matchCurrency
+          typeCurrency.forEach((item) => {
+         
+            item === selectCurrency ? matchCurrency = false : matchCurrency=true;
+          })
+          console.log(matchCurrency)
+          if (temp1.hasOwnProperty('currency') === true && matchCurrency) {
+            erros.currencyType = 'currency incorreto';
+          }
+        }
+      }
+      if (objetoVazio(temp1)) {
+
+
+
+        for (let prop in temp1) {
+
+          for (let propRegras in regras) {
+            regras[propRegras](temp1)
+
+          }
+
+        }
+        console.log(erros)
+        erros = {}
+        //console.log(temp1)
+      }
+
+
     }
-
-
-    const response = await client.send('Network.getResponseBodyForInterception',{ interceptionId });
-
-   /*  const contentTypeHeader = Object.keys(responseHeaders).find(k => k.toLowerCase() === 'content-type');
-    let newBody, contentType = responseHeaders[contentTypeHeader]; */
-
-  /*   if (requestCache.has(response.body)) {
-      newBody = requestCache.get(response.body);
-    } else {
-      const bodyData = response.base64Encoded ? atob(response.body) : response.body;
-     // console.log(bodyData)
-      try {
-        if (resourceType === 'Script') newBody = prettier.format(bodyData, { parser: 'babel' })
-        else newBody === bodyData
-      } catch(e) {
-        console.log(`Failed to process ${request} {interception id: ${interceptionId}}: ${e}`);
-        newBody = bodyData
-      } */
-  
-     // requestCache.set(response.body, newBody);
-    //}
-
-   /*  const newHeaders = [
-      'Date: ' + (new Date()).toUTCString(),
-      'Connection: closed',
-      'Content-Length: ' + newBody.length,
-      'Content-Type: ' + contentType
-    ]; */
-
-/*     console.log(`Continuing interception ${interceptionId}`)
- */   /*  client.send('Network.continueInterceptedRequest', {
-      interceptionId,
-      rawResponse: btoa('HTTP/1.1 200 OK' + '\r\n' + newHeaders.join('\r\n') + '\r\n\r\n' + newBody)
-    }); */
   });
 }
 
-(async function main(){
+(async function main() {
   const browser = await puppeteer.launch({
-    headless:false, 
-    defaultViewport:null,
+    headless: false,
+    defaultViewport: null,
     devtools: true,
-    
+
   });
 
   const page = (await browser.pages())[0];
 
   await interceptRequestsForPage(page);
 
- /*  browser.on('targetcreated', async (target) => {
-    const page = await target.page();
-    await interceptRequestsForPage(page);
-  }) */
+
 
 })()
+
+//['AED', 'ARS', 'AUD', 'BDT', 'BHD', 'BIF', 'BOB', 'BRL', 'CAD', 'CHF', 'CLP', 'CNY', 'COP', 'CRC', 'CZK', 'DKK', 'DZD', 'EGP', 'EUR', 'GBP', 'GTQ', 'HKD', 'HNL', 'HUF', 'IDR', 'ILS', 'INR', 'ISK', 'JPY', 'KES', 'KHR', 'KRW', 'KWD', 'KZT', 'MAD', 'MOP', 'MXN', 'MYR', 'NGN', 'NIO', 'NOK', 'NZD', 'OMR', 'PEN', 'PHP', 'PKR', 'PLN', 'PYG', 'QAR', 'RON', 'RUB', 'SAR', 'SEK', 'SGD', 'THB', 'TRY', 'TWD', 'UAH', 'USD', 'VES', 'VND', 'ZAR']
