@@ -23,7 +23,6 @@ async function interceptRequestsForPage(page) {
     if (request.url == 'https://analytics.tiktok.com/api/v2/pixel') {
       let temp = await JSON.parse(request.postData).event
       let temp1 = await JSON.parse(request.postData).properties
-      console.log(temp)
       function objetoVazio(obj) {
         for (var prop in obj) {
           if (obj.hasOwnProperty(prop)) return true;
@@ -33,6 +32,25 @@ async function interceptRequestsForPage(page) {
       let erros = {}
       let typeCurrency = ['AED', 'ARS', 'AUD', 'BDT', 'BHD', 'BIF', 'BOB', 'BRL', 'CAD', 'CHF', 'CLP', 'CNY', 'COP', 'CRC', 'CZK', 'DKK', 'DZD', 'EGP', 'EUR', 'GBP', 'GTQ', 'HKD', 'HNL', 'HUF', 'IDR', 'ILS', 'INR', 'ISK', 'JPY', 'KES', 'KHR', 'KRW', 'KWD', 'KZT', 'MAD', 'MOP', 'MXN', 'MYR', 'NGN', 'NIO', 'NOK', 'NZD', 'OMR', 'PEN', 'PHP', 'PKR', 'PLN', 'PYG', 'QAR', 'RON', 'RUB', 'SAR', 'SEK', 'SGD', 'THB', 'TRY', 'TWD', 'UAH', 'USD', 'VES', 'VND', 'ZAR']
       let regras = {
+        currency() {
+          if (temp1.hasOwnProperty('currency') === false && temp1.hasOwnProperty('value') === true) {
+            erros.currency = 'possui value e não possui currency';
+
+          }
+          if (temp1.hasOwnProperty('currency') === true) {
+            let selectCurrency = temp1.currency;   
+            
+            let typeCurrencyValid = typeCurrency.find((item)=>item===selectCurrency)
+            if(!typeCurrencyValid){
+              erros.typeCurrency ='Tipo de moeda incorreta';
+            }
+
+
+            
+           
+          }
+
+        },
         content_id() {
           if (temp1.hasOwnProperty('content_id') === false) {
             erros.content_id = 'Não possui content_id';
@@ -49,40 +67,23 @@ async function interceptRequestsForPage(page) {
           }
 
         },
-        currency() {
-          if (temp1.hasOwnProperty('currency') === false) {
 
-            if (temp1.hasOwnProperty('value') === true) {
-              erros.currency = 'possui value e não possui currency';
-            }
-          }
-          let selectCurrency = temp1.currency.toUpperCase();
-          let matchCurrency
-          typeCurrency.forEach((item) => {
-         
-            item === selectCurrency ? matchCurrency = false : matchCurrency=true;
-          })
-          console.log(matchCurrency)
-          if (temp1.hasOwnProperty('currency') === true && matchCurrency) {
-            erros.currencyType = 'currency incorreto';
-          }
-        }
       }
       if (objetoVazio(temp1)) {
 
 
 
         for (let prop in temp1) {
+          regras[prop](temp1)
+          /* for (let propRegras in regras) {
+            //regras[propRegras](temp1)
 
-          for (let propRegras in regras) {
-            regras[propRegras](temp1)
-
-          }
+          } */
 
         }
+        
         console.log(erros)
         erros = {}
-        //console.log(temp1)
       }
 
 
