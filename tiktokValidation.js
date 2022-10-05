@@ -73,7 +73,7 @@ function tikTokValidation(eventParams, eventName) {
     }
     
     console.log(erros)
-    console.log(content_id)
+   
 
 
 

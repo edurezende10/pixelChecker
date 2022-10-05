@@ -1,8 +1,6 @@
 const puppeteer = require('puppeteer');
 const tikTokValidation=require('./tiktokValidation');
-const prettier = require('prettier');
-const atob = require('atob');
-const btoa = require('btoa');
+
 
 const scriptUrlPatterns = [
   '*'
@@ -33,8 +31,10 @@ async function interceptRequestsForPage(page) {
 (async function main() {
   const browser = await puppeteer.launch({
     headless: false,
+    //headless: 'chrome',
     defaultViewport: null,
     devtools: true,
+   
 
   });
 
