@@ -2,6 +2,7 @@ const puppeteer = require('puppeteer');
 const tikTokValidation = require('./tiktokValidation');
 let express = require('express')
 var cors = require('cors')
+const port = process.env.PORT || 3000
 
 let app = express()
 let url
@@ -19,7 +20,7 @@ app.post('/', function (req, res, next) {
 app.get('/', function (req, res) {
   res.send('hello world')
 })
-app.listen(3000)
+app.listen(port)
 
 
 
